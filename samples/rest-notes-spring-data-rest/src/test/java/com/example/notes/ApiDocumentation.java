@@ -33,16 +33,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.RequestDispatcher;
+import javax.sql.DataSource;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.omg.Messaging.SYNC_WITH_TRANSPORT;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.hateoas.MediaTypes;
@@ -157,15 +161,22 @@ public class ApiDocumentation {
 		note.put("body", "https://martinfowler.com/articles/richardsonMaturityModel.html");
 		note.put("tags", Arrays.asList(tagLocation));
 
+		String string = this.objectMapper.writeValueAsString(note);
+
+		System.out.println("*****************");
+		System.out.println(string);
+		System.out.println("*****************");
+
 		this.mockMvc.perform(
 				post("/notes").contentType(MediaTypes.HAL_JSON).content(
 						this.objectMapper.writeValueAsString(note))).andExpect(
 				status().isCreated())
-				.andDo(document("notes-create-example",
+				.andDo(print()
+						/*document("notes-create-example",
 						requestFields(
 									fieldWithPath("title").description("The title of the note"),
 									fieldWithPath("body").description("The body of the note"),
-									fieldWithPath("tags").description("An array of tag resource URIs"))));
+									fieldWithPath("tags").description("An array of tag resource URIs")))*/);
 	}
 
 	@Test
@@ -208,6 +219,22 @@ public class ApiDocumentation {
 							fieldWithPath("title").description("The title of the note"),
 							fieldWithPath("body").description("The body of the note"),
 							subsectionWithPath("_links").description("<<resources-note-links,Links>> to other resources"))));
+	}
+
+	@Autowired
+	DataSource dataSource;
+
+	@Test
+	public void test(){
+		try {
+			Connection connection = dataSource.getConnection();
+			System.out.println("**************************");
+			System.out.println(connection.toString());
+			System.out.println("***************************");
+			connection.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Test
